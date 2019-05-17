@@ -21,6 +21,25 @@ function shuffle(array) {
   return array;
 }
 
+function show_map(file_name) {
+  $("#card_container").empty();
+  $("#menu_container").hide();
+  $("#card_container").show();
+  
+  $.ajax({
+    type: "GET",
+    url: file_name,
+    //url: "maps/metal.csv",
+    dataType: "text",
+    success: function(response)
+    {
+      words = $.csv.toArrays(response, {"separator": ";"});
+      shuffle(words);
+      create_map(words.slice(0, num_of_cards));
+    }
+  });
+}
+
 function create_map(words) {
   words.forEach(function(element) {
     var card_div = $("<span>", {"class": 'card'})
@@ -45,19 +64,52 @@ function create_map(words) {
   });
 }
 
-$(document).ready(function(){
+function init_map_size_selector() {
+  $("#map_size_4x5").click(function(){
+	  num_of_cards = 20;
+	  $("#map_size_4x5").addClass("map_size_selected");
+	  $("#map_size_5x5").removeClass("map_size_selected");
+  });
+  
+  $("#map_size_5x5").click(function(){
+	  num_of_cards = 25;
+	  $("#map_size_5x5").addClass("map_size_selected");
+	  $("#map_size_4x5").removeClass("map_size_selected");
+  });
+}
 
+function init_game_list() {
   $.ajax({
     type: "GET",
-    url: "maps/myanimelist_most_popular_200.csv",
-    //url: "maps/metal.csv",
+    url: "maps/maps.csv",
     dataType: "text",
     success: function(response)
     {
-      words = $.csv.toArrays(response, {"separator": ";"});
-      shuffle(words);
-      create_map(words.slice(0, num_of_cards));
+      maps = $.csv.toArrays(response, {"separator": ";"});
+      create_game_list(maps);
     }
   });
+}
 
+function create_game_list(maps) {
+  maps.forEach(function(map) {
+    var map_list_item = $("<span>", {"class": 'map_list_item card text_card'});
+	map_list_item.data("map_url", map[1]);
+    map_list_item.appendTo($("#game_list_container"));
+    map_list_item.click(function() {
+      show_map($(this).data("map_url"));
+    });
+	
+	map_list_item_text_span = $("<span>");
+	map_list_item_text_span.appendTo(map_list_item);
+	map_list_item_text_span.text(map[0]);
+  });
+}
+
+$(document).ready(function(){
+  $("#menu_container").show();
+  $("#card_container").hide();
+
+  init_map_size_selector();
+  init_game_list();
 });
